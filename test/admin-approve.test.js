@@ -34,9 +34,6 @@ describe('probot-autoAssign-reviewer', () => {
           
         myProbotApp(probot);
         context = new Context(payload, {}, {})
-
-        
-
         context.octokit.pulls = {
           listReviews: jest.fn().mockImplementation(() => Promise.resolve({
             data: listReviews,
@@ -64,7 +61,6 @@ describe('probot-autoAssign-reviewer', () => {
             data: teamMembers
           }))
         }
-
         
         // Passes the mocked out GitHub API into out robot instance
         probot.auth = () => Promise.resolve(octokit)
@@ -95,13 +91,23 @@ describe('probot-autoAssign-reviewer', () => {
             }))
         }
         
-        
         await getTeam(context)
         expect(context.octokit.repos.listTeams).toHaveBeenCalled()
-    })
+      })
 
       test("get admin", async () => {
         const team = 'justice-league'
+        await handlePullRequestChange(context,team)
+        expect(context.octokit.teams.listMembersInOrg).toHaveBeenCalled()
+      })
+
+      test("no admin", async () => {
+        const team = 'justice-league'
+        context.octokit.teams = {
+          listMembersInOrg: jest.fn().mockImplementation(() => Promise.resolve({
+            data: []
+          }))
+        }
         await handlePullRequestChange(context,team)
         expect(context.octokit.teams.listMembersInOrg).toHaveBeenCalled()
       })
